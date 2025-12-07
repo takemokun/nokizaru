@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # 開発用 Nokizaru Bot（cargo-watch付き）
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nokizaru-bot-dev
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    environment:
+      # サーバー設定
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 3000
+
+      # Slack設定
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET}
+
+      # AI設定（Rig Framework）
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+      # データベース設定
+      DATABASE_URL: ${DATABASE_URL}
+
+      # ロギング
+      RUST_LOG: ${RUST_LOG:-info,nokizaru_bot=debug}
+    volumes:
+      # ソースコードをマウント（自動リロード用）
+      - ./apps/bot:/app/apps/bot
+      - ./Cargo.toml:/app/Cargo.toml
+      - ./Cargo.lock:/app/Cargo.lock
+      # キャッシュ用（ビルド高速化）
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nokizaru-network
+
+  # PostgreSQL データベース（ローカル開発用）
+  db:
+    image: postgres:16-alpine
+    container_name: nokizaru-db-dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nokizaru}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nokizaru_password}
+      POSTGRES_DB: ${POSTGRES_DB:-nokizaru}
+    ports:
+      - "${POSTGRES_PORT:-5532}:5432"
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+      - ./apps/bot/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nokizaru}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nokizaru-network
+
+volumes:
+  postgres-data-dev:
+    driver: local
+  cargo-cache:
+    driver: local
+  target-cache:
+    driver: local
+
+networks:
+  nokizaru-network:
+    driver: bridge

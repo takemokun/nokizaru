@@ -1,0 +1,36 @@
+[package]
+name = "nokizaru-bot"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio.workspace = true
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+dotenvy.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+diesel.workspace = true
+diesel-async.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+# Local modules
+slack = { path = "module/slack" }
+user = { path = "module/user" }
+agent = { path = "module/agent" }
+shared-domain = { path = "shared/domain" }
+shared-infrastructure = { path = "shared/infrastructure" }
+
+[[bin]]
+name = "nokizaru-bot"
+path = "src/main.rs"
+
+[lib]
+name = "nokizaru_bot"
+path = "src/lib.rs"

@@ -1,0 +1,28 @@
+[package]
+name = "slack"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+async-trait.workspace = true
+slack-morphism.workspace = true
+reqwest.workspace = true
+hmac.workspace = true
+sha2.workspace = true
+hex.workspace = true
+chrono.workspace = true
+
+# Local dependencies
+shared-domain = { path = "../../shared/domain" }
+shared-infrastructure = { path = "../../shared/infrastructure" }
+
+[lib]
+path = "lib.rs"

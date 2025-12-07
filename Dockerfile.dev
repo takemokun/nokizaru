@@ -1,0 +1,27 @@
+FROM rust:1.83-slim-bookworm
+
+# 作業ディレクトリ
+WORKDIR /app
+
+# システム依存関係のインストール
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# cargo-watch のインストール（依存関係をロックせずインストール）
+RUN cargo install cargo-watch --locked --version 8.1.1
+
+# 初回ビルド用に依存関係をコピー
+COPY Cargo.toml Cargo.lock ./
+COPY apps/bot apps/bot
+
+# 依存関係のビルド（初回のみ）
+RUN cargo build
+
+# ポート公開
+EXPOSE 3000
+
+# cargo-watch で自動リロード
+CMD ["cargo", "watch", "-x", "run --bin nokizaru-bot"]
