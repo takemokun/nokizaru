@@ -2,17 +2,35 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
+    Form, Json,
 };
 use std::sync::Arc;
+use utoipa;
 
 use crate::api::v1::{
     container::AppContainer,
-    dto::{SlackCommandDto, SlackCommandResponseDto, SlackEventPayloadDto},
+    dto::{ErrorResponse, SlackCommandDto, SlackCommandResponseDto, SlackEventPayloadDto},
 };
 use crate::module::slack::{SlackCommand, SlackEvent};
 
-/// Slackイベントハンドラー
+const SLACK_TAG: &str = "Slack";
+
+/// Handle Slack events
+///
+/// Processes incoming Slack events including URL verification challenges
+/// and various event types.
+#[utoipa::path(
+    post,
+    path = "/api/v1/slack/events",
+    request_body = SlackEventPayloadDto,
+    responses(
+        (status = 200, description = "Event processed successfully", body = String,
+         example = json!({"challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P"})),
+        (status = 400, description = "Invalid event payload", body = ErrorResponse),
+        (status = 500, description = "Event processing failed", body = ErrorResponse),
+    ),
+    tag = SLACK_TAG,
+)]
 pub async fn handle_slack_events(
     State(container): State<Arc<AppContainer>>,
     Json(payload): Json<SlackEventPayloadDto>,
@@ -31,23 +49,38 @@ pub async fn handle_slack_events(
                 Ok(_) => (StatusCode::OK, "Event processed").into_response(),
                 Err(e) => {
                     tracing::error!("Event processing failed: {}", e);
-                    (StatusCode::INTERNAL_SERVER_ERROR, "Event processing failed").into_response()
+                    let error_response = ErrorResponse::new("Event processing failed");
+                    (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
                 }
             },
             Err(e) => {
                 tracing::error!("Failed to parse event: {}", e);
-                (StatusCode::BAD_REQUEST, "Invalid event payload").into_response()
+                let error_response = ErrorResponse::new("Invalid event payload");
+                (StatusCode::BAD_REQUEST, Json(error_response)).into_response()
             }
         }
     } else {
-        (StatusCode::BAD_REQUEST, "Invalid event payload").into_response()
+        let error_response = ErrorResponse::new("Invalid event payload");
+        (StatusCode::BAD_REQUEST, Json(error_response)).into_response()
     }
 }
 
-/// Slackコマンドハンドラー
+/// Handle Slack slash commands
+///
+/// Processes slash commands sent from Slack workspace.
+#[utoipa::path(
+    post,
+    path = "/api/v1/slack/commands",
+    request_body(content = SlackCommandDto, content_type = "application/x-www-form-urlencoded"),
+    responses(
+        (status = 200, description = "Command executed successfully", body = SlackCommandResponseDto),
+        (status = 500, description = "Command execution failed", body = ErrorResponse),
+    ),
+    tag = SLACK_TAG,
+)]
 pub async fn handle_slack_commands(
     State(container): State<Arc<AppContainer>>,
-    axum::Form(dto): axum::Form<SlackCommandDto>,
+    Form(dto): Form<SlackCommandDto>,
 ) -> Response {
     // DTOをドメインモデルに変換
     let command = SlackCommand {
@@ -65,16 +98,23 @@ pub async fn handle_slack_commands(
         }
         Err(e) => {
             tracing::error!("Command execution failed: {}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Command execution failed",
-            )
-                .into_response()
+            let error_response = ErrorResponse::new("Command execution failed");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
         }
     }
 }
 
-/// ヘルスチェックハンドラー
+/// Health check endpoint
+///
+/// Returns server health status.
+#[utoipa::path(
+    get,
+    path = "/api/v1/health",
+    responses(
+        (status = 200, description = "Server is healthy", body = String, example = json!("OK")),
+    ),
+    tag = "Health",
+)]
 pub async fn handle_health_check() -> impl IntoResponse {
     (StatusCode::OK, "OK")
 }

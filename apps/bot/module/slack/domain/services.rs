@@ -1,4 +1,5 @@
-use super::{SlackEvent, SlackCommand, SlackMessage, SlackError, SlackMessageRepository};
+use super::{SlackCommand, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
+use contracts::TextProcessorContract;
 use std::sync::Arc;
 
 /// Slackイベント処理のドメインサービス
@@ -11,13 +12,30 @@ impl SlackEventService {
         Self { message_repository }
     }
 
-    pub async fn process_event(&self, event: SlackEvent) -> Result<(), SlackError> {
+    pub async fn process_event(
+        &self,
+        event: SlackEvent,
+        text_processor: Arc<dyn TextProcessorContract>,
+    ) -> Result<(), SlackError> {
         match event {
-            SlackEvent::Message { channel, user, text, ts, thread_ts } => {
-                self.handle_message(channel, user, text, ts, thread_ts).await
+            SlackEvent::Message {
+                channel,
+                user,
+                text,
+                ts,
+                thread_ts,
+            } => {
+                self.handle_message(channel, user, text, ts, thread_ts)
+                    .await
             }
-            SlackEvent::AppMention { channel, user, text, ts } => {
-                self.handle_app_mention(channel, user, text, ts).await
+            SlackEvent::AppMention {
+                channel,
+                user,
+                text,
+                ts,
+            } => {
+                self.handle_app_mention(channel, user, text, ts, text_processor)
+                    .await
             }
         }
     }
@@ -30,7 +48,11 @@ impl SlackEventService {
         _ts: String,
         _thread_ts: Option<String>,
     ) -> Result<(), SlackError> {
-        tracing::info!("Processing message from user {} in channel {}", user, channel);
+        tracing::info!(
+            "Processing message from user {} in channel {}",
+            user,
+            channel
+        );
         // メッセージ処理ロジック
         Ok(())
     }
@@ -41,14 +63,25 @@ impl SlackEventService {
         user: String,
         text: String,
         ts: String,
+        text_processor: Arc<dyn TextProcessorContract>,
     ) -> Result<(), SlackError> {
-        tracing::info!("Processing app mention from user {} in channel {}", user, channel);
+        tracing::info!(
+            "Processing app mention from user {} in channel {}",
+            user,
+            channel
+        );
+
+        // TextProcessorを使ってチャンネルコンテキスト付きで応答を生成
+        let ai_response = text_processor
+            .process_with_channel(&channel, &text)
+            .await
+            .map_err(|e| SlackError::MessageSendFailed(format!("Text processing failed: {}", e)))?;
 
         // メンションへの返信
         let reply = SlackMessage {
             channel_id: channel,
             user_id: user,
-            text: format!("了解しました！「{}」を処理します。", text),
+            text: ai_response,
             timestamp: ts.clone(),
             thread_ts: Some(ts),
         };
@@ -66,16 +99,19 @@ pub struct SlackCommandService {
 
 impl SlackCommandService {
     pub fn new(message_repository: Arc<dyn SlackMessageRepository>) -> Self {
-        Self { _message_repository: message_repository }
+        Self {
+            _message_repository: message_repository,
+        }
     }
 
     pub async fn execute_command(&self, command: SlackCommand) -> Result<String, SlackError> {
         match command.command.as_str() {
             "/hello" => Ok(format!("こんにちは、<@{}>さん！", command.user_id)),
             "/help" => Ok(self.get_help_text()),
-            _ => Err(SlackError::CommandExecutionFailed(
-                format!("Unknown command: {}", command.command)
-            )),
+            _ => Err(SlackError::CommandExecutionFailed(format!(
+                "Unknown command: {}",
+                command.command
+            ))),
         }
     }
 
@@ -84,6 +120,7 @@ impl SlackCommandService {
 利用可能なコマンド:
 • /hello - 挨拶を返します
 • /help - このヘルプメッセージを表示します
-        "#.to_string()
+        "#
+        .to_string()
     }
 }

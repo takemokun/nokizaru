@@ -1,19 +1,24 @@
 use crate::domain::{SlackEvent, SlackCommand, SlackEventService, SlackCommandService, SlackError};
+use contracts::TextProcessorContract;
 use std::sync::Arc;
 
 /// イベント処理ユースケース
 pub struct ProcessEventUsecase {
     event_service: Arc<SlackEventService>,
+    text_processor: Arc<dyn TextProcessorContract>,
 }
 
 impl ProcessEventUsecase {
-    pub fn new(event_service: Arc<SlackEventService>) -> Self {
-        Self { event_service }
+    pub fn new(event_service: Arc<SlackEventService>, text_processor: Arc<dyn TextProcessorContract>) -> Self {
+        Self {
+            event_service,
+            text_processor,
+        }
     }
 
     pub async fn execute(&self, event: SlackEvent) -> Result<(), SlackError> {
         tracing::debug!("Executing process event usecase");
-        self.event_service.process_event(event).await
+        self.event_service.process_event(event, self.text_processor.clone()).await
     }
 }
 

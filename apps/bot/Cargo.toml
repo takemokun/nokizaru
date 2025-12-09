@@ -19,17 +19,29 @@ diesel.workspace = true
 diesel-async.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+utoipa.workspace = true
+utoipa-axum.workspace = true
+reqwest.workspace = true
+chrono.workspace = true
 
 # Local modules
 slack = { path = "module/slack" }
-user = { path = "module/user" }
 agent = { path = "module/agent" }
+contracts = { path = "shared/contracts" }
 shared-domain = { path = "shared/domain" }
 shared-infrastructure = { path = "shared/infrastructure" }
 
 [[bin]]
 name = "nokizaru-bot"
 path = "src/main.rs"
+
+[[bin]]
+name = "slack-post"
+path = "src/bin/slack_post.rs"
+
+[[bin]]
+name = "slack-fetch"
+path = "src/bin/slack_fetch.rs"
 
 [lib]
 name = "nokizaru_bot"

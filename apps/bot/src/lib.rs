@@ -8,11 +8,11 @@ pub mod application;
 pub mod module {
     pub use agent;
     pub use slack;
-    pub use user;
 }
 
 // 共有層を名前空間として再エクスポート
 pub mod shared {
+    pub use contracts;
     pub use shared_domain as domain;
     pub use shared_infrastructure as infrastructure;
 }

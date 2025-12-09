@@ -1,0 +1,10 @@
+[package]
+name = "contracts"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait = "0.1"
+anyhow = "1.0"

@@ -23,6 +23,7 @@ chrono.workspace = true
 # Local dependencies
 shared-domain = { path = "../../shared/domain" }
 shared-infrastructure = { path = "../../shared/infrastructure" }
+contracts = { path = "../../shared/contracts" }
 
 [lib]
 path = "lib.rs"

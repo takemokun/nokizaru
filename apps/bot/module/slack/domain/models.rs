@@ -52,3 +52,21 @@ pub struct SlackInteraction {
     pub action_id: String,
     pub value: Option<String>,
 }
+
+/// Slackチャンネル履歴メッセージ
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlackHistoryMessage {
+    /// メッセージタイプ
+    #[serde(rename = "type")]
+    pub msg_type: String,
+    /// ユーザーID（オプション）
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user: Option<String>,
+    /// Bot ID（オプション）
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bot_id: Option<String>,
+    /// メッセージテキスト
+    pub text: String,
+    /// タイムスタンプ
+    pub ts: String,
+}

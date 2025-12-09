@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use super::{SlackMessage, SlackError};
+use super::{SlackMessage, SlackHistoryMessage, SlackError};
 
 /// Slackメッセージ送信のためのリポジトリインターフェース
 #[async_trait]
@@ -18,4 +18,10 @@ pub trait SlackMessageRepository: Send + Sync {
         timestamp: &str,
         new_text: &str,
     ) -> Result<(), SlackError>;
+
+    async fn fetch_channel_history(
+        &self,
+        channel_id: &str,
+        limit: Option<i32>,
+    ) -> Result<Vec<SlackHistoryMessage>, SlackError>;
 }
