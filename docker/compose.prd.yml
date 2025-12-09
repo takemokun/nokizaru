@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Nokizaru Bot アプリケーション
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: nokizaru-bot
+    env_file:
+      - ../.env
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    environment:
+      # サーバー設定
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 3000
+
+      # ロギング
+      RUST_LOG: ${RUST_LOG:-info,nokizaru_api=debug,nokizaru_core=debug}
+    restart: unless-stopped
+    networks:
+      - nokizaru-network
+
+volumes: {}
+
+networks:
+  nokizaru-network:
+    driver: bridge
