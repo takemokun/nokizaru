@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # 開発用 Nokizaru Bot（cargo-watch付き）
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    container_name: nokizaru-bot-dev
+    env_file:
+      - ../.env
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    environment:
+      # サーバー設定
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 3000
+
+      # ロギング
+      RUST_LOG: ${RUST_LOG:-info,nokizaru_api=debug,nokizaru_core=debug}
+    volumes:
+      # ソースコードをマウント（自動リロード用）
+      - ../nokizaru-core:/app/nokizaru-core
+      - ../nokizaru-api:/app/nokizaru-api
+      - ../Cargo.toml:/app/Cargo.toml
+      - ../Cargo.lock:/app/Cargo.lock
+      # キャッシュ用（ビルド高速化）
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    restart: unless-stopped
+    networks:
+      - nokizaru-network
+
+volumes:
+  cargo-cache:
+    driver: local
+  target-cache:
+    driver: local
+
+networks:
+  nokizaru-network:
+    driver: bridge

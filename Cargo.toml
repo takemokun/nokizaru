@@ -1,11 +1,7 @@
 [workspace]
 members = [
-    "apps/bot",
-    "apps/bot/module/agent",
-    "apps/bot/module/slack",
-    "apps/bot/module/user",
-    "apps/bot/shared/domain",
-    "apps/bot/shared/infrastructure",
+    "nokizaru-core",
+    "nokizaru-api",
 ]
 resolver = "2"
 
@@ -65,3 +61,7 @@ rig-core = "0.5"
 # Diesel ORM
 diesel = { version = "2.2", features = ["postgres", "uuid", "chrono", "r2d2"] }
 diesel-async = { version = "0.5", features = ["postgres", "bb8"] }
+
+# OpenAPI and Schema Generation
+utoipa = { version = "5.3", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-axum = "0.2"
