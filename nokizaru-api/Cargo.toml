@@ -9,6 +9,7 @@ publish = false
 [dependencies]
 # nokizaru-core コアビジネスロジック依存
 nokizaru-core = { path = "../nokizaru-core" }
+nokizaru-slack = { path = "../nokizaru-slack" }
 
 tokio.workspace = true
 axum.workspace = true

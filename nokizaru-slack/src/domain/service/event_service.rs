@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::{AgentService, MessageContextService, SlackApiClient, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
+use crate::{MessageContextService, SlackApiClient, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
+use nokizaru_core::AgentService;
 
 pub struct EventService {
     context_service: Arc<MessageContextService>,

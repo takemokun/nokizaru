@@ -1,13 +1,13 @@
+use crate::api::v1::container::AppContainer;
 use axum::{
     routing::{get, post},
     Router,
 };
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
-use nokizaru_core::AppContainer;
 
 use super::{
-    handler::{docs_html, handle_agent_request, handle_health_check, handle_slack_commands, handle_slack_events},
+    handler::{docs_html, handle_health_check, handle_slack_commands, handle_slack_events},
     openapi::openapi_json,
 };
 

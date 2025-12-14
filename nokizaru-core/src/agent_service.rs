@@ -3,8 +3,6 @@ use rig::{client::CompletionClient, completion::Prompt, providers::openai};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageContextService;
-
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
 pub struct TestResponse {
     #[schemars(description = "Input message category. only 'Question' or 'NonQuestion'")]
@@ -52,12 +50,14 @@ impl AgentService {
         let rewritten_query = self.query_rewriting(input).await?;
         println!("Final rewritten queries: {:?}", rewritten_query.queries);
 
-        let contexts = MessageContextService::new()
-            .execute(rewritten_query.queries[0].as_str())
-            .await
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        // let contexts = MessageContextService::new()
+        //     .execute(rewritten_query.queries[0].as_str())
+        //     .await
+        //     .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        //
+        // println!("Retrieved contexts: {:?}", contexts.len());
 
-        println!("Retrieved contexts: {:?}", contexts.len());
+        let contexts = "Sample context for testing purposes.".to_string();
 
         let answer = self.answer(input, &contexts).await?;
 

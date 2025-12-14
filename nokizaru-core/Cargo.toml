@@ -17,12 +17,10 @@ serde_json.workspace = true
 reqwest.workspace = true
 chrono.workspace = true
 futures.workspace = true
+rig-core.workspace = true
+schemars.workspace = true
 
 # Local modules
-slack = { path = "module/slack" }
-agent = { path = "module/agent" }
-contract = { path = "shared/contract" }
-shared-domain = { path = "shared/domain" }
 shared-infrastructure = { path = "shared/infrastructure" }
 
 [lib]

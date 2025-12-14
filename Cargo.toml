@@ -2,6 +2,7 @@
 members = [
     "nokizaru-core",
     "nokizaru-api",
+    "nokizaru-slack",
 ]
 resolver = "2"
 

@@ -6,8 +6,8 @@ use axum::{
 };
 use std::sync::Arc;
 use utoipa;
-use nokizaru_core::AppContainer;
-use nokizaru_core::module::slack::{SlackCommand, SlackEvent};
+use crate::api::v1::container::AppContainer;
+use nokizaru_slack::{SlackCommand, SlackEvent};
 
 use crate::api::v1::dto::{ErrorResponse, SlackCommandDto, SlackCommandResponseDto, SlackEventPayloadDto};
 
