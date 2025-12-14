@@ -5,7 +5,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use nokizaru_core::module::slack::verify_slack_signature;
+use nokizaru_slack::verify_slack_signature;
 
 /// Slack署名検証ミドルウェア
 pub async fn verify_signature_middleware(

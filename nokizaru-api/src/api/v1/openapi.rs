@@ -2,7 +2,7 @@ use axum::{response::IntoResponse, Json};
 use utoipa::OpenApi;
 
 use super::dto::{
-    AgentRequest, AgentResponse, ErrorResponse, SlackCommandDto, SlackCommandResponseDto,
+    ErrorResponse, SlackCommandDto, SlackCommandResponseDto,
     SlackEventPayloadDto,
 };
 
@@ -23,14 +23,11 @@ use super::dto::{
     ),
     paths(
         crate::api::v1::handler::slack::handle_health_check,
-        crate::api::v1::handler::agent::handle_agent_request,
         crate::api::v1::handler::slack::handle_slack_events,
         crate::api::v1::handler::slack::handle_slack_commands,
     ),
     components(
         schemas(
-            AgentRequest,
-            AgentResponse,
             SlackEventPayloadDto,
             SlackCommandDto,
             SlackCommandResponseDto,

@@ -1,10 +1,13 @@
 [package]
-name = "agent"
+name = "nokizaru-slack"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
+license.workspace = true
 
 [dependencies]
-# Workspace dependencies
+nokizaru-core = { path = "../nokizaru-core" }
+
 tokio.workspace = true
 axum.workspace = true
 serde.workspace = true
@@ -19,12 +22,10 @@ hmac.workspace = true
 sha2.workspace = true
 hex.workspace = true
 chrono.workspace = true
+futures.workspace = true
 rig-core.workspace = true
-
-# Local dependencies
-shared-domain = { path = "../../shared/domain" }
-shared-infrastructure = { path = "../../shared/infrastructure" }
-contract = { path = "../../shared/contract" }
+schemars.workspace = true
 
 [lib]
-path = "lib.rs"
+name = "nokizaru_slack"
+path = "src/lib.rs"

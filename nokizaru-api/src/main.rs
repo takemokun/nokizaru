@@ -1,5 +1,6 @@
-use nokizaru_core::{AppContainer, init_logging, AppConfig, create_pool, run_migrations};
-use nokizaru_api::create_router;
+use nokizaru_api::{create_router, api::v1::{AppContainer, AppConfig}};
+use nokizaru_core::{create_pool, run_migrations};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -20,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("✅ Database migrations completed");
 
     // DIコンテナ構築
-    let container = std::sync::Arc::new(AppContainer::new(config.clone(), db_pool));
+    let container = std::sync::Arc::new(AppContainer::new(config.clone()));
     tracing::info!("✅ DI container initialized");
 
     // ルーター構築
@@ -39,4 +40,14 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+fn init_logging() {
+    tracing_subscriber::registry()
+        .with(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new("info,nokizaru=debug")),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 }

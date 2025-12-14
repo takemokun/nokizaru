@@ -1,4 +1,4 @@
-FROM rust:1.83-slim-bookworm
+FROM rust:1.91-slim-bookworm
 
 # 作業ディレクトリ
 WORKDIR /app
@@ -17,6 +17,7 @@ RUN cargo install cargo-watch --locked --version 8.1.1
 COPY Cargo.toml Cargo.lock ./
 COPY nokizaru-core nokizaru-core
 COPY nokizaru-api nokizaru-api
+COPY nokizaru-slack nokizaru-slack
 
 # 依存関係のビルド（初回のみ）
 RUN cargo build

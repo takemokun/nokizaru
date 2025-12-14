@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde_json::json;
 
 use crate::domain::{SlackError, SlackHistoryMessage, SlackMessage, SlackMessageRepository};
-use contract::{SlackHistoryMessageInfo, SlackMessageContract, SlackMessageInfo};
+use crate::contract::{SlackHistoryMessageInfo, SlackMessageContract, SlackMessageInfo};
 
 /// Slack API クライアント実装
 pub struct SlackApiClient {
