@@ -55,8 +55,12 @@ uuid = { version = "1.11", features = ["v4", "serde"] }
 # 非同期trait
 async-trait = "0.1"
 
+# 非同期ユーティリティ
+futures = "0.3"
+
 # AI Framework (Rig)
-rig-core = "0.5"
+rig-core = "0.23"
+schemars = { version = "1.1", features = ["derive"] }
 
 # Diesel ORM
 diesel = { version = "2.2", features = ["postgres", "uuid", "chrono", "r2d2"] }

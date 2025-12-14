@@ -19,6 +19,9 @@ hmac.workspace = true
 sha2.workspace = true
 hex.workspace = true
 chrono.workspace = true
+futures.workspace = true
+rig-core.workspace = true
+schemars.workspace = true
 
 # Local dependencies
 shared-domain = { path = "../../shared/domain" }

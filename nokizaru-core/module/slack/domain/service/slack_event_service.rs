@@ -1,4 +1,4 @@
-use super::{SlackCommand, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
+use crate::domain::{SlackCommand, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
 use contract::TextProcessorContract;
 use std::sync::Arc;
 
@@ -21,11 +21,12 @@ impl SlackEventService {
             SlackEvent::Message {
                 channel,
                 user,
+                bot_id,
                 text,
                 ts,
                 thread_ts,
             } => {
-                self.handle_message(channel, user, text, ts, thread_ts)
+                self.handle_message(channel, user, bot_id, text, ts, thread_ts)
                     .await
             }
             SlackEvent::AppMention {
@@ -43,14 +44,29 @@ impl SlackEventService {
     async fn handle_message(
         &self,
         channel: String,
-        user: String,
+        user: Option<String>,
+        bot_id: Option<String>,
         _text: String,
         _ts: String,
         _thread_ts: Option<String>,
     ) -> Result<(), SlackError> {
+        // ボット自身のメッセージは無視（無限ループ防止）
+        if bot_id.is_some() {
+            tracing::debug!("Ignoring bot message from bot_id: {:?}", bot_id);
+            return Ok(());
+        }
+
+        let user_id = match user {
+            Some(id) => id,
+            None => {
+                tracing::warn!("Message has no user field, skipping");
+                return Ok(());
+            }
+        };
+
         tracing::info!(
             "Processing message from user {} in channel {}",
-            user,
+            user_id,
             channel
         );
         // メッセージ処理ロジック

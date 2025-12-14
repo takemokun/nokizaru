@@ -17,7 +17,10 @@ pub enum SlackEvent {
     #[serde(rename = "message")]
     Message {
         channel: String,
-        user: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        user: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        bot_id: Option<String>,
         text: String,
         ts: String,
         #[serde(skip_serializing_if = "Option::is_none")]

@@ -43,14 +43,23 @@ pub async fn handle_slack_events(
     // イベント処理
     if let Some(event_value) = payload.event {
         match serde_json::from_value::<SlackEvent>(event_value) {
-            Ok(event) => match container.process_event_usecase.execute(event).await {
-                Ok(_) => (StatusCode::OK, "Event processed").into_response(),
-                Err(e) => {
-                    tracing::error!("Event processing failed: {}", e);
-                    let error_response = ErrorResponse::new("Event processing failed");
-                    (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
-                }
-            },
+            Ok(event) => {
+                // バックグラウンドで処理を実行（Slackに即座にレスポンスを返すため）
+                let container_clone = Arc::clone(&container);
+                tokio::spawn(async move {
+                    match container_clone.process_event_usecase.execute(event).await {
+                        Ok(_) => {
+                            tracing::info!("✅ Event processed successfully in background");
+                        }
+                        Err(e) => {
+                            tracing::error!("❌ Background event processing failed: {}", e);
+                        }
+                    }
+                });
+
+                // Slackに即座に200 OKを返す（3秒タイムアウトを防ぐ）
+                (StatusCode::OK, "Event accepted").into_response()
+            }
             Err(e) => {
                 tracing::error!("Failed to parse event: {}", e);
                 let error_response = ErrorResponse::new("Invalid event payload");

@@ -1,7 +1,7 @@
 # ==========================================
 # Builder Stage - Rustビルド環境
 # ==========================================
-FROM rust:1.83-slim-bookworm AS builder
+FROM rust:1.91-slim-bookworm AS builder
 
 # 作業ディレクトリ設定
 WORKDIR /app

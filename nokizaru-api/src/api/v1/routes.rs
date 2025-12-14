@@ -17,7 +17,6 @@ pub fn create_router(container: Arc<AppContainer>) -> Router {
         .route("/health", get(handle_health_check))
         .route("/slack/events", post(handle_slack_events))
         .route("/slack/commands", post(handle_slack_commands))
-        .route("/agent", post(handle_agent_request))
         .layer(TraceLayer::new_for_http())
         .with_state(container);
 
