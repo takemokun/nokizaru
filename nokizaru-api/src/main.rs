@@ -1,6 +1,6 @@
-use nokizaru_api::{create_router, api::v1::{AppContainer, AppConfig}};
+use nokizaru_api::api::v1::{create_router, AppConfig, AppContainer};
 use nokizaru_core::{create_pool, run_migrations};
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
