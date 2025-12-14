@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
-use crate::{MessageContextService, SlackApiClient, SlackError, SlackEvent, SlackMessage, SlackMessageRepository};
-use nokizaru_core::AgentService;
+use crate::{
+    MessageContextService, SlackApiClient, SlackError, SlackEvent, SlackMessage,
+    SlackMessageRepository,
+};
+use nokizaru_core::{AgentService, MessageCategory};
 
 pub struct EventService {
     context_service: Arc<MessageContextService>,
@@ -40,9 +43,7 @@ impl EventService {
                 user,
                 text,
                 ts,
-            } => {
-                self.handle_app_mention(channel, user, text, ts).await
-            }
+            } => self.handle_app_mention(channel, user, text, ts).await,
         }
     }
 
@@ -75,80 +76,57 @@ impl EventService {
             user_id,
             channel
         );
-        
-        
 
-        // AgentService.test を実行
         tracing::info!("Starting agent test for input: {}", text);
-        // match self.agent_service.test(&text).await {
-        //     Ok(answer) => {
-        //         // AIの回答をSlackに送信
-        //         tracing::info!("Agent test completed successfully, sending answer to Slack");
-        //         let message = SlackMessage {
-        //             channel_id: channel,
-        //             user_id: user_id,
-        //             text: answer,
-        //             timestamp: String::new(),
-        //             thread_ts: None,
-        //         };
-        //         self.slack_api
-        //             .send_message(&message)
-        //             .await
-        //             .map_err(|e| {
-        //                 tracing::error!("Failed to send message to Slack: {}", e);
-        //                 e
-        //             })?;
-        //         
-        //         tracing::info!("Answer sent to Slack successfully");
-        //         Ok(())
-        //     }
-        //     Err(e) => {
-        //         // エラーメッセージをSlackに送信
-        //         tracing::error!("Agent test failed with error: {}", e);
-        //         let error_text = format!("❌ Agent processing failed: {}", e);
-        //         let error_message = SlackMessage {
-        //             channel_id: channel,
-        //             user_id: user_id,
-        //             text: error_text,
-        //             timestamp: String::new(),
-        //             thread_ts: None,
-        //         };
-        //         
-        //         // エラーメッセージの送信を試みる
-        //         if let Err(send_err) = self.slack_api.send_message(&error_message).await {
-        //             tracing::error!("Failed to send error message to Slack: {}", send_err);
-        //         }
-        //         
-        //         Err(SlackError::ApiError(format!("Agent processing failed: {}", e)))
-        //     }
-        // }
-        //
-        //
-        let result = self.agent_service.test(&text).await;
+
+        let reflection_result =
+            self.agent_service.reflection(&text).await.map_err(|e| {
+                SlackError::ApiError(format!("Reflection failed: {}", e.to_string()))
+            })?;
+
+        if !matches!(reflection_result.category, MessageCategory::Question) {
+            println!(
+                "No further action for category: {:?}",
+                reflection_result.category
+            );
+            return Ok(());
+        }
+
+        let search_query = self
+            .agent_service
+            .query_rewriting(&text)
+            .await
+            .map_err(|e| {
+                SlackError::ApiError(format!("Query rewriting failed: {}", e.to_string()))
+            })?;
+
+        println!("Final rewritten queries: {:?}", search_query.queries);
+
+        let contexts = self.context_service
+            .execute(search_query.queries[0].as_str())
+            .await?;
+
+        println!("Retrieved contexts: {:?}", contexts.len());
+
+        let result = self.agent_service.answer(&text, &contexts).await;
         match result {
             Ok(answer) => {
-                self.slack_api.send_message(&SlackMessage {
-                    channel_id: channel,
-                    user_id: user_id,
-                    text: answer,
-                    timestamp: String::new(),
-                    thread_ts: None,
-                }).await?;
-            },
+                self.slack_api
+                    .send_message(&SlackMessage {
+                        channel_id: channel,
+                        user_id: user_id,
+                        text: answer,
+                        timestamp: String::new(),
+                        thread_ts: None,
+                    })
+                    .await?;
+            }
             Err(e) => {
                 let error_text = format!("❌ Agent processing failed: {}", e);
                 tracing::error!("{}", error_text);
             }
         };
 
-        //
-        // self.slack_api.send_message(&SlackMessage {
-        //     channel_id: channel,
-        //     user_id: user_id,
-        //     text: result,
-        //     timestamp: String::new(),
-        //     thread_ts: None,
-        // }).await?;
         Ok(())
     }
 
@@ -166,13 +144,8 @@ impl EventService {
             text
         );
 
-        // llm に text を渡して、routing を決定するロジック
-        //
-        let tmp_query = "課題";
+        // なんか
 
-        let context = self.context_service.execute(&tmp_query).await?;
-        // slack の メッセージコンテキストを、ai 用のcontext に変換するロジック
-        // context を一緒に ai にぶん投げる
         Ok(())
     }
 }

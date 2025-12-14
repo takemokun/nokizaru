@@ -3,7 +3,6 @@ use reqwest::Client;
 use serde_json::json;
 
 use crate::domain::{SlackError, SlackHistoryMessage, SlackMessage, SlackMessageRepository};
-use crate::contract::{SlackHistoryMessageInfo, SlackMessageContract, SlackMessageInfo};
 
 /// Slack API クライアント実装
 pub struct SlackApiClient {
@@ -150,64 +149,3 @@ impl SlackMessageRepository for SlackApiClient {
     }
 }
 
-// SlackMessageContract の実装
-#[async_trait]
-impl SlackMessageContract for SlackApiClient {
-    async fn send_message(&self, message: &SlackMessageInfo) -> anyhow::Result<()> {
-        let domain_message = SlackMessage {
-            channel_id: message.channel_id.clone(),
-            user_id: message.user_id.clone(),
-            text: message.text.clone(),
-            timestamp: message.timestamp.clone(),
-            thread_ts: message.thread_ts.clone(),
-        };
-        <Self as SlackMessageRepository>::send_message(self, &domain_message)
-            .await
-            .map_err(|e| anyhow::anyhow!("Slack send message failed: {}", e))
-    }
-
-    async fn send_reply(&self, message: &SlackMessageInfo, thread_ts: &str) -> anyhow::Result<()> {
-        let domain_message = SlackMessage {
-            channel_id: message.channel_id.clone(),
-            user_id: message.user_id.clone(),
-            text: message.text.clone(),
-            timestamp: message.timestamp.clone(),
-            thread_ts: message.thread_ts.clone(),
-        };
-        <Self as SlackMessageRepository>::send_reply(self, &domain_message, thread_ts)
-            .await
-            .map_err(|e| anyhow::anyhow!("Slack send reply failed: {}", e))
-    }
-
-    async fn update_message(
-        &self,
-        channel_id: &str,
-        timestamp: &str,
-        new_text: &str,
-    ) -> anyhow::Result<()> {
-        <Self as SlackMessageRepository>::update_message(self, channel_id, timestamp, new_text)
-            .await
-            .map_err(|e| anyhow::anyhow!("Slack update message failed: {}", e))
-    }
-
-    async fn fetch_channel_history(
-        &self,
-        channel_id: &str,
-        limit: Option<i32>,
-    ) -> anyhow::Result<Vec<SlackHistoryMessageInfo>> {
-        let messages =
-            <Self as SlackMessageRepository>::fetch_channel_history(self, channel_id, limit)
-                .await
-                .map_err(|e| anyhow::anyhow!("Slack fetch history failed: {}", e))?;
-
-        Ok(messages
-            .into_iter()
-            .map(|m| SlackHistoryMessageInfo {
-                user: m.user,
-                bot_id: m.bot_id,
-                text: m.text,
-                ts: m.ts,
-            })
-            .collect())
-    }
-}

@@ -65,23 +65,7 @@ impl AgentService {
         Ok(answer)
     }
 
-    async fn answer(&self, input: &str, context: &str) -> Result<String> {
-        println!("Answering with context length: {}", context.len());
-        let openai = openai::Client::from_env();
-        let agent = openai
-            .agent(openai::GPT_4_1_MINI)
-            .preamble(
-                "You are a helpful assistant that answers questions based on provided context.",
-            )
-            .build();
-
-        let prompt = format!("Context:\n{}\n\nQuestion:\n{}", context, input);
-        let response = agent.prompt(&prompt).await?;
-        println!("Agent response: {}", response);
-        Ok(response)
-    }
-
-    async fn reflection(&self, input: &str) -> Result<ReflectionResult> {
+    pub async fn reflection(&self, input: &str) -> Result<ReflectionResult> {
         let openai = openai::Client::from_env();
 
         let extractor = openai
@@ -106,7 +90,7 @@ impl AgentService {
         })
     }
 
-    async fn query_rewriting(&self, input: &str) -> Result<SearchQuery> {
+    pub async fn query_rewriting(&self, input: &str) -> Result<SearchQuery> {
         let openai = openai::Client::from_env();
 
         let rewriter = openai
@@ -128,5 +112,21 @@ impl AgentService {
         let rewritten_query = rewriter.extract(input).await?;
         println!("Rewritten query: {:?}", rewritten_query);
         Ok(rewritten_query)
+    }
+
+    pub async fn answer(&self, input: &str, context: &str) -> Result<String> {
+        println!("Answering with context length: {}", context.len());
+        let openai = openai::Client::from_env();
+        let agent = openai
+            .agent(openai::GPT_4_1_MINI)
+            .preamble(
+                "You are a helpful assistant that answers questions based on provided context.",
+            )
+            .build();
+
+        let prompt = format!("Context:\n{}\n\nQuestion:\n{}", context, input);
+        let response = agent.prompt(&prompt).await?;
+        println!("Agent response: {}", response);
+        Ok(response)
     }
 }
