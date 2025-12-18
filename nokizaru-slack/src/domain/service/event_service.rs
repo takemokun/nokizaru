@@ -1,22 +1,22 @@
 use std::sync::Arc;
 
+use crate::slack_api::SlackApi;
 use crate::{
-    MessageContextService, SlackApiClient, SlackError, SlackEvent, SlackMessage,
-    SlackMessageRepository,
+    slack_api::PostMessageRequest, MessageContextService, SlackError, SlackEvent,
 };
 use nokizaru_core::{AgentService, MessageCategory};
 
 pub struct EventService {
     context_service: Arc<MessageContextService>,
     agent_service: Arc<AgentService>,
-    slack_api: Arc<crate::SlackApiClient>,
+    slack_api: Arc<SlackApi>,
 }
 
 impl EventService {
     pub fn new(
         context_service: Arc<MessageContextService>,
         agent_service: Arc<AgentService>,
-        slack_api: Arc<SlackApiClient>,
+        slack_api: Arc<SlackApi>,
     ) -> Self {
         Self {
             context_service,
@@ -102,7 +102,8 @@ impl EventService {
 
         println!("Final rewritten queries: {:?}", search_query.queries);
 
-        let contexts = self.context_service
+        let contexts = self
+            .context_service
             .execute(search_query.queries[0].as_str())
             .await?;
 
@@ -112,14 +113,14 @@ impl EventService {
         match result {
             Ok(answer) => {
                 self.slack_api
-                    .send_message(&SlackMessage {
+                    .post_message(&PostMessageRequest {
                         channel_id: channel,
-                        user_id: user_id,
                         text: answer,
-                        timestamp: String::new(),
                         thread_ts: None,
                     })
-                    .await?;
+                    .await.map_err(|e| {
+                        SlackError::ApiError(format!("Failed to post message: {}", e.to_string()))
+                    })?;
             }
             Err(e) => {
                 let error_text = format!("❌ Agent processing failed: {}", e);
