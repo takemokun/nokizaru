@@ -2,7 +2,7 @@ use std::{env, sync::Arc};
 
 use nokizaru_slack::{
     EventService, ExecuteCommandUsecase, MessageContextService, ProcessEventUsecase,
-    SlackApiClient, SlackCommandService,
+     SlackCommandService, slack_api::SlackApi,
 };
 
 use nokizaru_core::AgentService;
@@ -22,16 +22,16 @@ pub struct AppContainer {
 impl AppContainer {
     pub fn new(config: AppConfig) -> Self {
         // Infrastructure層
-        let slack_client = Arc::new(SlackApiClient::new(config.slack.bot_token.clone()));
+        let slack_client = Arc::new(SlackApi::new(config.slack.bot_token.clone()));
 
         // Domain Services
-        let slack_command_service = Arc::new(SlackCommandService::new(slack_client.clone()));
+        let slack_command_service = Arc::new(SlackCommandService::new());
         let slack_context_service = Arc::new(MessageContextService::new());
         let agent_service = Arc::new(AgentService);
         let slack_event_service = Arc::new(EventService::new(
             slack_context_service,
             agent_service,
-            slack_client.clone(),
+            slack_client,
         ));
 
         // Application Usecases

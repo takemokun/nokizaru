@@ -1,16 +1,11 @@
-use crate::domain::{SlackCommand, SlackError, SlackMessageRepository};
-use std::sync::Arc;
+use crate::domain::{SlackCommand, SlackError};
 
 /// Slackコマンド処理のドメインサービス
-pub struct SlackCommandService {
-    _message_repository: Arc<dyn SlackMessageRepository>,
-}
+pub struct SlackCommandService {}
 
 impl SlackCommandService {
-    pub fn new(message_repository: Arc<dyn SlackMessageRepository>) -> Self {
-        Self {
-            _message_repository: message_repository,
-        }
+    pub fn new() -> Self {
+        Self {}
     }
 
     pub async fn execute_command(&self, command: SlackCommand) -> Result<String, SlackError> {
