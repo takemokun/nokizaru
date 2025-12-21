@@ -1,5 +1,6 @@
 use crate::slack_api::client::SlackHttpClient;
 
+#[derive(Clone)]
 pub struct SlackApi {
     pub client: SlackHttpClient,
 }
