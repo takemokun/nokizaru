@@ -35,6 +35,21 @@ pub struct UpdateMessageResponse {
     pub text: String,
 }
 
+/// chat.delete リクエスト
+#[derive(Debug, Clone, Serialize)]
+pub struct DeleteMessageRequest {
+    pub channel: String,
+    pub ts: String,
+}
+
+/// chat.delete レスポンス
+#[derive(Debug, Clone, Deserialize)]
+pub struct DeleteMessageResponse {
+    pub ok: bool,
+    pub channel: String,
+    pub ts: String,
+}
+
 impl SlackApi {
     /// メッセージ送信
     pub async fn post_message(
@@ -57,5 +72,19 @@ impl SlackApi {
         };
 
         self.client.http_post("chat.update", &request).await
+    }
+
+    /// メッセージを削除
+    pub async fn delete_message(
+        &self,
+        channel: &str,
+        ts: &str,
+    ) -> ClientResult<DeleteMessageResponse> {
+        let request = DeleteMessageRequest {
+            channel: channel.to_string(),
+            ts: ts.to_string(),
+        };
+
+        self.client.http_post("chat.delete", &request).await
     }
 }

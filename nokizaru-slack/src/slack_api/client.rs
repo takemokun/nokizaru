@@ -5,6 +5,7 @@ use crate::slack_api::error::SlackError;
 
 pub type ClientResult<T> = std::result::Result<T, SlackError>;
 
+#[derive(Clone)]
 pub struct SlackHttpClient {
     http_client: Client,
     token: String,
